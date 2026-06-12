@@ -29,7 +29,17 @@ async function searchStdict(query: string, key: string): Promise<DictEntry[]> {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`표준국어대사전 응답 오류 (${res.status})`);
 
-  const data = await res.json();
+  const text = await res.text();
+  if (!text.trim()) return [];
+  if (!text.trim().startsWith("{") && !text.trim().startsWith("[")) {
+    throw new Error(`표준국어대사전이 JSON이 아닌 응답을 반환했습니다 (키 오류 또는 서버 오류)`);
+  }
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`표준국어대사전 JSON 파싱 실패`);
+  }
   const items = toArray<any>(data?.channel?.item);
   const entries: DictEntry[] = [];
 
@@ -56,7 +66,17 @@ async function searchWoorimalsam(query: string, key: string): Promise<DictEntry[
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`우리말샘 응답 오류 (${res.status})`);
 
-  const data = await res.json();
+  const text = await res.text();
+  if (!text.trim()) return [];
+  if (!text.trim().startsWith("{") && !text.trim().startsWith("[")) {
+    throw new Error(`우리말샘이 JSON이 아닌 응답을 반환했습니다 (키 오류 또는 서버 오류)`);
+  }
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`우리말샘 JSON 파싱 실패`);
+  }
   const items = toArray<any>(data?.channel?.item);
   const entries: DictEntry[] = [];
 
