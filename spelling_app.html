@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>속기사 맞춤법 학습 앱</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f5f5f3; color: #1a1a1a; font-size: 16px; }
+.container { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; color: #1a1a1a; }
+.api-section { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.api-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+.key-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.key-field label { font-size: 12px; color: #666; margin-bottom: 4px; display: block; }
+.key-field input { width: 100%; padding: 8px 10px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 13px; }
+.tab-nav { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e5; margin-bottom: 1.5rem; }
+.tab-btn { padding: 8px 16px; font-size: 14px; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; color: #888; }
+.tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+textarea { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 15px; resize: vertical; font-family: inherit; }
+.btn-primary { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-primary:hover { background: #333; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+.btn:hover { background: #f5f5f3; }
+.action-row { display: flex; gap: 8px; margin-top: 8px; }
+.result-box { margin-top: 1.25rem; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; }
+.result-header { padding: 10px 16px; border-bottom: 1px solid #e5e5e5; font-size: 13px; font-weight: 500; color: #666; display: flex; justify-content: space-between; }
+.result-body { padding: 16px; font-size: 15px; line-height: 1.7; white-space: pre-wrap; }
+.result-body.loading { color: #888; font-style: italic; }
+.result-footer { padding: 10px 16px; border-top: 1px solid #e5e5e5; }
+.error-msg { background: #fff0ee; color: #c0392b; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 8px; }
+.success-msg { background: #eafaf1; color: #1e8449; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 8px; }
+.dict-tabs { display: flex; gap: 4px; margin-bottom: 1rem; }
+.dict-tab { padding: 5px 14px; font-size: 13px; border-radius: 8px; border: 1px solid #e5e5e5; cursor: pointer; background: #fff; color: #888; }
+.dict-tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.search-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.search-row input { flex: 1; padding: 8px 12px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 14px; }
+.word-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+.word-title { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.word-pos { font-size: 12px; color: #888; margin-bottom: 8px; }
+.word-def { font-size: 14px; line-height: 1.6; }
+.word-ex { font-size: 13px; color: #888; margin-top: 6px; font-style: italic; }
+.wb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.wb-count { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+.wb-item { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.wb-word { font-size: 15px; font-weight: 500; }
+.wb-note { font-size: 13px; color: #888; margin-top: 2px; }
+.wb-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
+.tag-spell { background: #fff0ee; color: #c0392b; }
+.tag-foreign { background: #eafaf1; color: #1e8449; }
+.tag-word { background: #eaf3fb; color: #1a6fa8; }
+.icon-btn { background: none; border: none; cursor: pointer; color: #888; font-size: 18px; padding: 4px; border-radius: 6px; }
+.icon-btn:hover { background: #f5f5f3; color: #1a1a1a; }
+.add-form { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-field label { font-size: 12px; color: #666; margin-bottom: 4px; display: block; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; padding: 7px 10px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.form-field textarea { min-height: 60px; resize: vertical; }
+.form-full { grid-column: 1 / -1; }
+.flash-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 2rem; text-align: center; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; transition: transform 0.1s; }
+.flash-card:hover { transform: scale(1.003); }
+.flash-q { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+.flash-hint { font-size: 13px; color: #888; }
+.flash-a { font-size: 15px; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e5e5; width: 100%; }
+.flash-nav { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 12px; }
+.flash-count { font-size: 13px; color: #888; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #888; font-size: 14px; }
+@media (max-width: 600px) {
+  .key-row, .form-row { grid-template-columns: 1fr; }
+  .form-full { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>속기사 맞춤법 학습 앱</h1>
+
+  <div class="api-section">
+    <h3>🔑 API 키 설정</h3>
+    <div class="key-row">
+      <div class="key-field">
+        <label>Claude API 키</label>
+        <input type="password" id="claude-key" placeholder="sk-ant-..." />
+      </div>
+      <div class="key-field">
+        <label>국립국어원 API 키</label>
+        <input type="password" id="korean-key" placeholder="발급받은 키 입력" />
+      </div>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+      <button class="btn-primary" onclick="saveKeys()">저장</button>
+      <span id="key-status" style="font-size:13px;"></span>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('spell',this)">맞춤법 검사</button>
+    <button class="tab-btn" onclick="showTab('dict',this)">단어 검색</button>
+    <button class="tab-btn" onclick="showTab('wordbook',this)">내 단어장</button>
+    <button class="tab-btn" onclick="showTab('flash',this)">학습 카드</button>
+  </nav>
+
+  <div id="tab-spell" class="tab-panel active">
+    <p style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">텍스트 입력</p>
+    <textarea id="spell-input" placeholder="맞춤법·띄어쓰기·외래어 표기를 검사할 텍스트를 입력하세요."></textarea>
+    <div class="action-row">
+      <button class="btn-primary" id="spell-btn" onclick="checkSpelling()">검사하기</button>
+      <button class="btn" onclick="clearSpell()">초기화</button>
+    </div>
+    <div id="spell-error"></div>
+    <div class="result-box" id="spell-result" style="display:none;">
+      <div class="result-header"><span>교정 결과</span><span>Claude AI</span></div>
+      <div class="result-body" id="spell-result-body"></div>
+      <div class="result-footer">
+        <button class="btn" onclick="saveToWordbook()">📌 단어장에 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-dict" class="tab-panel">
+    <div class="dict-tabs">
+      <button class="dict-tab active" onclick="selectDict('standard',this)">표준국어대사전</button>
+      <button class="dict-tab" onclick="selectDict('urimalsam',this)">우리말샘</button>
+    </div>
+    <div class="search-row">
+      <input type="text" id="dict-input" placeholder="검색할 단어를 입력하세요" onkeydown="if(event.key==='Enter') searchDict()" />
+      <button class="btn-primary" onclick="searchDict()">검색</button>
+    </div>
+    <div id="dict-error"></div>
+    <div id="dict-results"></div>
+  </div>
+
+  <div id="tab-wordbook" class="tab-panel">
+    <div class="add-form" id="add-form" style="display:none;">
+      <p style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">단어 직접 추가</p>
+      <div class="form-row">
+        <div class="form-field">
+          <label>단어</label>
+          <input type="text" id="wb-word" placeholder="예: 하나같이" />
+        </div>
+        <div class="form-field">
+          <label>분류</label>
+          <select id="wb-tag">
+            <option value="spell">맞춤법·띄어쓰기</option>
+            <option value="foreign">외래어 표기</option>
+            <option value="word">한단어</option>
+          </select>
+        </div>
+        <div class="form-field form-full">
+          <label>메모</label>
+          <textarea id="wb-note" placeholder="예: '하나 같이'가 아니라 '하나같이'로 붙여 씀"></textarea>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-primary" onclick="addWordManual()">추가</button>
+        <button class="btn" onclick="toggleAddForm()">취소</button>
+      </div>
+    </div>
+    <div class="wb-header">
+      <span class="wb-count">저장된 단어 <span id="wb-count">0</span>개</span>
+      <button class="btn" onclick="toggleAddForm()">+ 직접 추가</button>
+    </div>
+    <div id="wordbook-list"></div>
+  </div>
+
+  <div id="tab-flash" class="tab-panel">
+    <div id="flash-empty" class="empty-state" style="display:none;">
+      <div style="font-size:32px; margin-bottom:8px;">📖</div>
+      단어장에 단어를 저장하면 학습 카드가 생성됩니다.
+    </div>
+    <div id="flash-wrap">
+      <div class="flash-card" onclick="flipCard()">
+        <p class="flash-q" id="flash-q">-</p>
+        <p class="flash-hint" id="flash-hint">클릭하면 메모를 확인할 수 있어요</p>
+        <div class="flash-a" id="flash-a" style="display:none;"></div>
+      </div>
+      <div class="flash-nav">
+        <button class="btn" onclick="prevCard()">◀</button>
+        <span class="flash-count" id="flash-count">0 / 0</span>
+        <button class="btn" onclick="nextCard()">▶</button>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn" onclick="shuffleCards()">🔀 순서 섞기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let claudeKey = localStorage.getItem('claudeKey') || '';
+let koreanKey = localStorage.getItem('koreanKey') || '';
+let wordbook = JSON.parse(localStorage.getItem('wordbook') || '[]');
+let currentDict = 'standard';
+let flashIndex = 0;
+let flashCards = [];
+let cardFlipped = false;
+let lastSpellResult = '';
+let lastSpellInput = '';
+
+if (claudeKey) document.getElementById('claude-key').value = claudeKey;
+if (koreanKey) document.getElementById('korean-key').value = koreanKey;
+
+function saveKeys() {
+  claudeKey = document.getElementById('claude-key').value.trim();
+  koreanKey = document.getElementById('korean-key').value.trim();
+  localStorage.setItem('claudeKey', claudeKey);
+  localStorage.setItem('koreanKey', koreanKey);
+  const st = document.getElementById('key-status');
+  st.style.color = '#1e8449';
+  st.textContent = '✓ 저장되었습니다';
+  setTimeout(() => st.textContent = '', 2000);
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'flash') initFlash();
+  if (name === 'wordbook') renderWordbook();
+}
+
+async function checkSpelling() {
+  const text = document.getElementById('spell-input').value.trim();
+  const errEl = document.getElementById('spell-error');
+  errEl.innerHTML = '';
+  if (!text) return;
+  if (!claudeKey) {
+    errEl.innerHTML = '<div class="error-msg">Claude API 키를 먼저 입력하고 저장해 주세요.</div>';
+    return;
+  }
+  lastSpellInput = text;
+  const btn = document.getElementById('spell-btn');
+  btn.disabled = true;
+  btn.textContent = '검사 중...';
+  const resultBox = document.getElementById('spell-result');
+  const resultBody = document.getElementById('spell-result-body');
+  resultBox.style.display = 'block';
+  resultBody.className = 'result-body loading';
+  resultBody.textContent = 'Claude AI가 검사 중입니다...';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `다음 텍스트의 맞춤법, 띄어쓰기, 외래어 표기법을 검사해 주세요. 틀린 부분은 [틀린표기 → 올바른표기] 형식으로 명확히 표시하고, 교정된 전체 문장을 제시해 주세요. 틀린 부분이 없으면 "맞춤법 이상 없음"이라고만 답해 주세요.\n\n텍스트: ${text}`
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      resultBox.style.display = 'none';
+      errEl.innerHTML = `<div class="error-msg">오류: ${data.error.message || '알 수 없는 오류'}</div>`;
+    } else {
+      const result = data.content?.map(c => c.text || '').join('') || '결과를 가져올 수 없습니다.';
+      lastSpellResult = result;
+      resultBody.className = 'result-body';
+      resultBody.textContent = result;
+    }
+  } catch(e) {
+    resultBox.style.display = 'none';
+    errEl.innerHTML = `<div class="error-msg">오류: ${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '검사하기';
+}
+
+function clearSpell() {
+  document.getElementById('spell-input').value = '';
+  document.getElementById('spell-result').style.display = 'none';
+  document.getElementById('spell-error').innerHTML = '';
+  lastSpellInput = ''; lastSpellResult = '';
+}
+
+function saveToWordbook() {
+  if (!lastSpellInput) return;
+  const item = { id: Date.now(), word: lastSpellInput.slice(0,40) + (lastSpellInput.length > 40 ? '...' : ''), note: lastSpellResult.slice(0,200), tag: 'spell', date: new Date().toLocaleDateString('ko-KR') };
+  wordbook.unshift(item);
+  localStorage.setItem('wordbook', JSON.stringify(wordbook));
+  alert('단어장에 저장되었습니다.');
+}
+
+function selectDict(type, el) {
+  currentDict = type;
+  document.querySelectorAll('.dict-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function searchDict() {
+  const query = document.getElementById('dict-input').value.trim();
+  const errEl = document.getElementById('dict-error');
+  errEl.innerHTML = '';
+  if (!query) return;
+  if (!koreanKey) { errEl.innerHTML = '<div class="error-msg">국립국어원 API 키를 먼저 입력하고 저장해 주세요.</div>'; return; }
+  const container = document.getElementById('dict-results');
+  container.innerHTML = '<p style="color:#888; font-size:14px; padding:1rem 0;">검색 중...</p>';
+  const dictCode = currentDict === 'standard' ? 'kor' : 'all';
+  const url = `https://opendict.korean.go.kr/api/search?certkey_no=6100&key=${koreanKey}&target_type=search&request_type=json&q=${encodeURIComponent(query)}&dict_type=${dictCode}&start=1&num=5`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data?.channel?.item || [];
+    if (!items.length) { container.innerHTML = '<p style="color:#888; font-size:14px; padding:1rem 0;">검색 결과가 없습니다.</p>'; return; }
+    container.innerHTML = items.map(item => {
+      const def = (item.sense?.definition || item.sense?.[0]?.definition || '정의 없음').replace(/<[^>]+>/g,'');
+      const ex = (item.sense?.example || item.sense?.[0]?.example || '').replace(/<[^>]+>/g,'');
+      const w = (item.word || query).replace(/'/g,"\\'");
+      const d = def.replace(/'/g,"\\'").slice(0,200);
+      return `<div class="word-card">
+        <div class="word-title">${item.word || query}</div>
+        <div class="word-pos">${item.pos || ''}</div>
+        <div class="word-def">${def}</div>
+        ${ex ? `<div class="word-ex">예: ${ex}</div>` : ''}
+        <div style="margin-top:10px;">
+          <button class="btn" onclick="saveWordFromDict('${w}','${d}')">📌 단어장에 저장</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<div class="error-msg">검색 오류: ${e.message}</div>`;
+  }
+}
+
+function saveWordFromDict(word, def) {
+  const item = { id: Date.now(), word, note: def.slice(0,200), tag: 'word', date: new Date().toLocaleDateString('ko-KR') };
+  wordbook.unshift(item);
+  localStorage.setItem('wordbook', JSON.stringify(wordbook));
+  alert(`"${word}"을(를) 단어장에 저장했습니다.`);
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addWordManual() {
+  const word = document.getElementById('wb-word').value.trim();
+  if (!word) { alert('단어를 입력해 주세요.'); return; }
+  const item = { id: Date.now(), word, note: document.getElementById('wb-note').value.trim(), tag: document.getElementById('wb-tag').value, date: new Date().toLocaleDateString('ko-KR') };
+  wordbook.unshift(item);
+  localStorage.setItem('wordbook', JSON.stringify(wordbook));
+  document.getElementById('wb-word').value = '';
+  document.getElementById('wb-note').value = '';
+  document.getElementById('add-form').style.display = 'none';
+  renderWordbook();
+}
+
+function deleteWord(id) {
+  if (!confirm('삭제하시겠어요?')) return;
+  wordbook = wordbook.filter(w => w.id !== id);
+  localStorage.setItem('wordbook', JSON.stringify(wordbook));
+  renderWordbook();
+}
+
+const tagLabels = { spell: '맞춤법·띄어쓰기', foreign: '외래어 표기', word: '한단어' };
+const tagClasses = { spell: 'tag-spell', foreign: 'tag-foreign', word: 'tag-word' };
+
+function renderWordbook() {
+  document.getElementById('wb-count').textContent = wordbook.length;
+  const list = document.getElementById('wordbook-list');
+  if (!wordbook.length) { list.innerHTML = '<div class="empty-state"><div style="font-size:32px;margin-bottom:8px;">📚</div>저장된 단어가 없습니다.</div>'; return; }
+  list.innerHTML = wordbook.map(w => `
+    <div class="wb-item">
+      <div style="flex:1;">
+        <div class="wb-word">${w.word}</div>
+        ${w.note ? `<div class="wb-note">${w.note}</div>` : ''}
+        <span class="wb-tag ${tagClasses[w.tag]||'tag-word'}">${tagLabels[w.tag]||w.tag}</span>
+        <span style="font-size:11px; color:#aaa; margin-left:4px;">${w.date||''}</span>
+      </div>
+      <button class="icon-btn" onclick="deleteWord(${w.id})" title="삭제">🗑</button>
+    </div>`).join('');
+}
+
+function initFlash() {
+  flashCards = [...wordbook]; flashIndex = 0; cardFlipped = false;
+  if (!flashCards.length) { document.getElementById('flash-empty').style.display='block'; document.getElementById('flash-wrap').style.display='none'; }
+  else { document.getElementById('flash-empty').style.display='none'; document.getElementById('flash-wrap').style.display='block'; renderFlash(); }
+}
+
+function renderFlash() {
+  if (!flashCards.length) return;
+  const c = flashCards[flashIndex];
+  document.getElementById('flash-q').textContent = c.word;
+  document.getElementById('flash-a').textContent = c.note || '메모 없음';
+  document.getElementById('flash-a').style.display = cardFlipped ? 'block' : 'none';
+  document.getElementById('flash-hint').style.display = cardFlipped ? 'none' : 'block';
+  document.getElementById('flash-count').textContent = `${flashIndex+1} / ${flashCards.length}`;
+}
+
+function flipCard() { cardFlipped = !cardFlipped; renderFlash(); }
+function nextCard() { flashIndex = (flashIndex+1)%flashCards.length; cardFlipped=false; renderFlash(); }
+function prevCard() { flashIndex = (flashIndex-1+flashCards.length)%flashCards.length; cardFlipped=false; renderFlash(); }
+function shuffleCards() {
+  for (let i=flashCards.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [flashCards[i],flashCards[j]]=[flashCards[j],flashCards[i]]; }
+  flashIndex=0; cardFlipped=false; renderFlash();
+}
+
+renderWordbook(); initFlash();
+</script>
+</body>
+</html>
