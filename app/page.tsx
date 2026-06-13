@@ -21,7 +21,7 @@ export default function Home() {
   return (
     <div className="container">
       <header className="app-header">
-        <h1>속기사 맞춤법 학습기</h1>
+        <h1>바른한글 바른표기</h1>
         <p>검사 · 검색 · 단어장 · 플래시카드로 어문 규범을 익히세요</p>
       </header>
 
