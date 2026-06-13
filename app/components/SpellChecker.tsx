@@ -89,17 +89,9 @@ export default function SpellChecker() {
           maxLength={4000}
         />
         <div className="row" style={{ marginTop: 12, justifyContent: "space-between" }}>
-          <div className="row" style={{ gap: 12, alignItems: "center" }}>
-            <span className="muted" style={{ fontSize: "0.82rem" }}>
-              {text.length} / 4000자
-            </span>
-            <a
-              href={`mailto:alfud9045@gmail.com?subject=${encodeURIComponent("바른한글 바른표기 오류수정 및 의견")}`}
-              style={{ fontSize: "0.82rem", color: "var(--muted, #888)", textDecoration: "none", cursor: "pointer" }}
-            >
-              오류수정 및 의견보내기
-            </a>
-          </div>
+          <span className="muted" style={{ fontSize: "0.82rem" }}>
+            {text.length} / 4000자
+          </span>
           <div className="row">
             <button
               className="btn ghost small"
@@ -119,6 +111,14 @@ export default function SpellChecker() {
           </div>
         </div>
         {error && <div className="error-box">{error}</div>}
+      </div>
+      <div style={{ marginTop: 6, textAlign: "left" }}>
+        <a
+          href={`mailto:alfud9045@gmail.com?subject=${encodeURIComponent("바른한글 바른표기 오류수정 및 의견")}`}
+          style={{ fontSize: "0.82rem", color: "var(--muted, #888)", textDecoration: "none" }}
+        >
+          오류수정 및 의견보내기
+        </a>
       </div>
 
       {result && (
