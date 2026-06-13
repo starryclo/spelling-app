@@ -16,7 +16,6 @@ export default function WordBook() {
   const [filter, setFilter] = useState<"전체" | WordCategory>("전체");
 
   // 수동 추가 폼
-  const [term, setTerm] = useState("");
   const [answer, setAnswer] = useState("");
   const [note, setNote] = useState("");
   const [category, setCategory] = useState<WordCategory>("맞춤법");
@@ -38,17 +37,16 @@ export default function WordBook() {
   }, [words]);
 
   function handleAdd() {
-    const t = term.trim();
-    if (!t) {
-      setFormError("표제어(또는 틀린 표현)를 입력하세요.");
+    const a = answer.trim();
+    if (!a) {
+      setFormError("올바른 표현/뜻을 입력하세요.");
       return;
     }
-    if (isDuplicate(t, category)) {
+    if (isDuplicate(a, category)) {
       setFormError("이미 같은 분류에 등록된 단어입니다.");
       return;
     }
-    setWords(addWord({ term: t, answer: answer.trim(), note: note.trim(), category }));
-    setTerm("");
+    setWords(addWord({ term: a, answer: "", note: note.trim(), category }));
     setAnswer("");
     setNote("");
     setFormError("");
@@ -64,13 +62,6 @@ export default function WordBook() {
         <p className="section-title">단어 직접 추가</p>
         <p className="hint">검사·검색 결과 외에 직접 외우고 싶은 단어를 등록하세요.</p>
         <div className="row" style={{ marginBottom: 10 }}>
-          <input
-            className="text-input"
-            style={{ flex: 1, minWidth: 140 }}
-            placeholder="표제어 / 틀린 표현"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-          />
           <input
             className="text-input"
             style={{ flex: 1, minWidth: 140 }}
